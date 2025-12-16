@@ -196,21 +196,34 @@ def get_crypto_rates_rub():
                 "ids": ids,
                 "vs_currencies": "rub"
             },
-            timeout=5
+            timeout=10
         )
+
         data = r.json()
+
+        if not isinstance(data, dict):
+            return {}
+
         rates = {}
+
         for key, cid in CRYPTO_IDS.items():
-            rates[key] = data[cid]["rub"]
+            if cid in data and "rub" in data[cid]:
+                rates[key] = data[cid]["rub"]
+
         return rates
+
     except Exception as e:
-        logging.error("CoinGecko error: %s", e)
+        logging.error(f"CoinGecko error: {e}")
         return {}
 
+
 def rub_to_crypto(rub_amount: int, rates: dict):
+    if not rates:
+        return {}
+
     result = {}
     for code, rub_price in rates.items():
-        if rub_price > 0:
+        if rub_price and rub_price > 0:
             result[code] = rub_amount / rub_price
     return result
 
